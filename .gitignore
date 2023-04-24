@@ -1,5 +1,7 @@
 RelationExtraction/emnlp2017-relation-extraction-master/resources/glove/glove.6B.50d.txt
 
+run_lama.sh
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
