@@ -72,7 +72,7 @@ fi
 cd "$DATA_DIR"
 echo 'Building common vocab'
 if [ ! -f "$DST_DIR/common_vocab_cased.txt" ]; then
-  python lama/vocab_intersection.py
+  python lama/vocab_intersection.py data_path=$DATA_DIR
 else
   echo 'Already exists. Run to re-build:'
   echo 'python lama/vocab_intersection.py'

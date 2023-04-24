@@ -4,107 +4,51 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #
-from lama.modules import build_model_by_name
+
+import os, sys
+from modules import build_model_by_name
 from tqdm import tqdm
 import argparse
 import spacy
-import lama.modules.base_connector as base
+import modules.base_connector as base
+import hydra
+from hydra.core.config_store import ConfigStore
+from dataclasses import dataclass
 
 
 CASED_MODELS = [
-  # {
-  #   # "FAIRSEQ WIKI103"
-  #   "lm": "fairseq",
-  #   "data": "pre-trained_language_models/fairseq/wiki103_fconv_lm/",
-  #   "fairseq_model_name": "wiki103.pt",
-  #   "task": "language_modeling",
-  #   "cpu": True,
-  #   "output_dictionary_size": -1
-  # },
-  # {
-  #   # "TransformerXL"
-  #   "lm": "transformerxl",
-  #   "transformerxl_model_dir": "pre-trained_language_models/transformerxl/transfo-xl-wt103/",
-  # },
-  {
-    # "ELMO ORIGINAL"
-    "lm": "elmo",
-    "elmo_model_dir": "pre-trained_language_models/elmo/original",
-    "elmo_model_name": "elmo_2x4096_512_2048cnn_2xhighway",
-    "elmo_vocab_name": "vocab-2016-09-10.txt",
-    "elmo_warm_up_cycles": 5
-  },
-  {
-    # "ELMO ORIGINAL 5.5B"
-    "lm": "elmo",
-    "elmo_model_dir": "pre-trained_language_models/elmo/original5.5B/",
-    "elmo_model_name": "elmo_2x4096_512_2048cnn_2xhighway_5.5B",
-    "elmo_vocab_name": "vocab-enwiki-news-500000.txt",
-    "elmo_warm_up_cycles": 5
-  },
-  {
-    # "BERT BASE CASED"
-    "lm": "bert",
-    "bert_model_name": "bert-base-cased",
-    "bert_model_dir": "pre-trained_language_models/bert/cased_L-12_H-768_A-12/",
-    "bert_vocab_name": "vocab.txt"
-  },
-  {
-    # "BERT LARGE CASED"
-    "lm" : "bert",
-    "bert_model_name": "bert-large-cased",
-    "bert_model_dir": "pre-trained_language_models/bert/cased_L-24_H-1024_A-16/",
-    "bert_vocab_name": "vocab.txt"
-  },
-  {
-    # "RoBERTa base"
-    "lm" : "roberta",
-    "roberta_model_name": "model.pt",
-    "roberta_model_dir": "pre-trained_language_models/roberta/roberta.base",
-    "roberta_vocab_name": "dict.txt",
-    "max_sentence_length": 100
-  },
-  {
-    # "hfRoBERTa base"
-    "lm" : "hfroberta",
-    "hfroberta_model_name": "roberta-base",
-    "hfroberta_model_dir": "pre-trained_language_models/roberta/roberta-base",
-  },
-  {
-    # "OpenAI GPT-2"
-    "lm": "gpt2",
-    "gpt2_model_name": "gpt2",
-    "gpt2_model_dir": "pre-trained_language_models/gpt/gpt2",
-  },
+    {
+        # "hfRoBERTa base"
+        "lm": "hfroberta",
+        "hfroberta_model_name": "roberta-base",
+        "hfroberta_model_dir": "pre-trained_language_models/roberta/roberta-base",
+    },
+    {
+        # "hfLUKE base"
+        "lm": "hfluke",
+        "luke_model_name": "luke-base",
+        "luke_model_dir": "pre-trained_language_models/luke/luke-base",
+        "tokenizer_dir": "studio-ousia/luke-base",
+    },
+    {
+        # "OpenAI GPT-2"
+        "lm": "gpt2",
+        "gpt2_model_name": "gpt2-medium",
+        "gpt2_model_dir": "pre-trained_language_models/gpt/gpt2-medium",
+        "tokenizer_dir": "pre-trained_language_models/gpt/gpt2-medium"
+    },
+    {
+        # "KELM-GPT-2"
+        "lm": "gpt2",
+        "gpt2_model_name": "gpt2-medium",
+        "gpt2_model_dir": "kelm/output/gpt2-medium/kelm_full/",
+        "tokenizer_dir": "pre-trained_language_models/gpt/gpt2-medium"
+    }
 ]
 
 CASED_COMMON_VOCAB_FILENAME = "pre-trained_language_models/common_vocab_cased.txt"
 
-LOWERCASED_MODELS = [
-  {
-    # "BERT BASE UNCASED"
-    "lm": "bert",
-    "bert_model_name": "bert-base-uncased",
-    #"bert_model_dir": None,
-    "bert_model_dir": "pre-trained_language_models/bert/uncased_L-12_H-768_A-12",
-    "bert_vocab_name": "vocab.txt"
-  },
-  {
-    # "BERT LARGE UNCASED"
-    "lm": "bert",
-    "bert_model_name": "bert-large-uncased",
-    #"bert_model_dir": None,
-    "bert_model_dir": "pre-trained_language_models/bert/uncased_L-24_H-1024_A-16",
-    "bert_vocab_name": "vocab.txt"
-  },
-  {
-    # "OpenAI GPT"
-    "lm": "gpt",
-    #"gpt_model_dir": None,
-    "gpt_model_dir": "pre-trained_language_models/gpt/openai-gpt",
-    "gpt_model_name": "openai-gpt"
-  },
-]
+LOWERCASED_MODELS = []
 
 LOWERCASED_COMMON_VOCAB_FILENAME = "pre-trained_language_models/common_vocab_lowercased.txt"
 
@@ -148,7 +92,11 @@ def __vocab_intersection(models, filename):
         for i in tqdm(range(len(common_vocab))):
             word = common_vocab[i]
             doc = nlp(word)
-            token = doc[0]
+            try:
+                token = doc[0]
+            except:
+                print(f"Skip vocab entry {i}.")
+                continue
             if(len(doc) != 1):
                 print(word)
                 for idx, tok in enumerate(doc):
@@ -170,11 +118,20 @@ def __vocab_intersection(models, filename):
                 f.write("{}\n".format(item))
 
 
-def main():
+@dataclass
+class VocabConfig:
+    data_path: str = ""  # location of pre-trained_language_models folder in which the models and tokenizers are stored
+    # see scripts/run_experiments.py
+
+cs = ConfigStore.instance()
+cs.store(name="conf", node=VocabConfig())
+
+@hydra.main(version_base=None, config_name="conf")
+def main(cfg: VocabConfig) -> None:
     # cased version
-    __vocab_intersection(CASED_MODELS, CASED_COMMON_VOCAB_FILENAME)
+    __vocab_intersection(CASED_MODELS, os.path.join(cfg.data_path, CASED_COMMON_VOCAB_FILENAME))
     # lowercased version
-    __vocab_intersection(LOWERCASED_MODELS, LOWERCASED_COMMON_VOCAB_FILENAME)
+    #__vocab_intersection(LOWERCASED_MODELS, LOWERCASED_COMMON_VOCAB_FILENAME)
 
 
 if __name__ == '__main__':
