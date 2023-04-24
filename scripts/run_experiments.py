@@ -17,89 +17,48 @@ from shutil import copyfile
 from collections import defaultdict
 
 LMs = [
-    #{
-    #    "lm": "transformerxl",
-    #    "label": "transformerxl",
-    #    "models_names": ["transformerxl"],
-    #    "transformerxl_model_name": "transfo-xl-wt103",
-    #    "transformerxl_model_dir": "pre-trained_language_models/transformerxl/transfo-xl-wt103/",
-    #},
+    # {
+    #     "lm": "gpt2",
+    #     "label": "gpt2",
+    #     "models_names": ["gpt2"],
+    #     "gpt2_model_name": "gpt2",
+    #     "gpt2_model_dir": None,
+    #     "tokenizer_dir": "pre-trained_language_models/gpt/gpt2",
+    # },
     {
-        "lm": "elmo",
-        "label": "elmo",
-        "models_names": ["elmo"],
-        "elmo_model_name": "elmo_2x4096_512_2048cnn_2xhighway",
-        "elmo_vocab_name": "vocab-2016-09-10.txt",
-        "elmo_model_dir": "pre-trained_language_models/elmo/original",
-        "elmo_warm_up_cycles": 10,
-    },
-    {
-        "lm": "elmo",
-        "label": "elmo5B",
-        "models_names": ["elmo"],
-        "elmo_model_name": "elmo_2x4096_512_2048cnn_2xhighway_5.5B",
-        "elmo_vocab_name": "vocab-enwiki-news-500000.txt",
-        "elmo_model_dir": "pre-trained_language_models/elmo/original5.5B/",
-        "elmo_warm_up_cycles": 10,
-    },
-    {
-        "lm": "bert",
-        "label": "bert_base",
-        "models_names": ["bert"],
-        "bert_model_name": "bert-base-cased",
-        "bert_model_dir": "pre-trained_language_models/bert/cased_L-12_H-768_A-12",
-    },
-    {
-        "lm": "bert",
-        "label": "bert_large",
-        "models_names": ["bert"],
-        "bert_model_name": "bert-large-cased",
-        "bert_model_dir": "pre-trained_language_models/bert/cased_L-24_H-1024_A-16",
-    },
-    {
-        "lm": "gpt",
-        "label": "gpt",
-        "models_names": ["gpt"],
-        "gpt_model_name": "openai-gpt",
-        "gpt_model_dir": "pre-trained_language_models/gpt/openai-gpt/",
-        "lowercase": True,
-        "common_vocab_filename": "pre-trained_language_models/common_vocab_lowercased.txt",
-    },
-    {
-        "lm": "roberta",
-        "label": "roberta.base",
-        "models_names": ["roberta"],
-        "roberta_model_name": "model.pt",
-        "roberta_model_dir": "pre-trained_language_models/roberta/roberta.base",
-        "roberta_vocab_name": "dict.txt",
-    },
-    {
-        "lm": "hfroberta",
-        "label": "roberta-base",
-        "models_names": ["hfroberta"],
-        "hfroberta_model_name": "roberta-base",
-        "hfroberta_model_dir": "pre-trained_language_models/roberta/roberta-base",
-    },
-    {
-        "lm": "gpt2",
-        "label": "gpt2",
+        "lm": "gpt2-medium",
+        "label": "gpt2-medium",
         "models_names": ["gpt2"],
-        "gpt2_model_name": "gpt2",
-        "gpt2_model_dir": "pre-trained_language_models/gpt/gpt2",
+        "gpt2_model_name": "gpt2-medium",
+        "gpt2_model_dir": "pre-trained_language_models/gpt/gpt2-medium",
+        "tokenizer_dir": "pre-trained_language_models/gpt/gpt2-medium"
     },
-]
+    {
+        "lm": "gpt2-medium",
+        "label": "gpt2-medium_kelm-full",
+        "models_names": ["gpt2"],
+        "gpt2_model_name": "gpt2-medium",
+        "gpt2_model_dir": "kelm/output/gpt2-medium/kelm_full/",
+        "tokenizer_dir": "pre-trained_language_models/gpt/gpt2-medium"
+    },
+    {
+        "lm": "luke",
+        "label": "luke",
+        "models_names": ["hfluke"],
+        "luke_model_name": "studio-ousia/luke-base",
+        "luke_model_dir": None,
+        "tokenizer_dir": None
+    }
+    ]
 
 def run_experiments(
     relations,
     data_path_pre,
     data_path_post,
-    input_param={
-        "lm": "bert",
-        "label": "bert_large",
-        "models_names": ["bert"],
-        "bert_model_name": "bert-large-cased",
-        "bert_model_dir": "pre-trained_language_models/bert/cased_L-24_H-1024_A-16",
-    },
+    input_param,
+    results_file,
+    log_dir,
+    data_path,
     use_negated_probes=False,
 ):
     model = None
@@ -109,9 +68,9 @@ def run_experiments(
     type_Precision1 = defaultdict(list)
     type_count = defaultdict(list)
 
-    results_file = open("last_results.csv", "a+")
+    results_file = open(results_file, "a+")
     results_file.write(
-        "{},{}\n".format("lm_label", input_param["label"])
+        "=={}==\n".format(input_param["label"])
     )
     results_file.flush()
 
@@ -121,12 +80,13 @@ def run_experiments(
             "dataset_filename": "{}{}{}".format(
                 data_path_pre, relation["relation"], data_path_post
             ),
-            "common_vocab_filename": "pre-trained_language_models/common_vocab_cased.txt",
+            "common_vocab_filename": None,
             "template": "",
             "bert_vocab_name": "vocab.txt",
             "batch_size": 32,
-            "logdir": "output",
-            "full_logdir": "output/results/{}/{}".format(
+            "logdir": log_dir,
+            "data_path": data_path,
+            "full_logdir": log_dir + "{}/{}".format(
                 input_param["label"], relation["relation"]
             ),
             "lowercase": False,
@@ -153,6 +113,12 @@ def run_experiments(
             print("Relation {} excluded.".format(relation["relation"]))
             print("Exception: {}".format(e))
             continue
+
+        # fix https://github.com/facebookresearch/LAMA/issues/30
+        if input_param["lm"] in ["elmo"]:
+            if model is not None:
+                del model
+                model = None
 
         if model is None:
             [model_type_name] = args.models_names
@@ -198,7 +164,7 @@ def get_TREx_parameters(data_path_pre="data/"):
     return relations, data_path_pre, data_path_post
 
 
-def get_GoogleRE_parameters():
+def get_GoogleRE_parameters(data_path_pre="data/"):
     relations = [
         {
             "relation": "place_of_birth",
@@ -216,7 +182,7 @@ def get_GoogleRE_parameters():
             "template_negated": "[X] did not die in [Y] .",
         },
     ]
-    data_path_pre = "data/Google_RE/"
+    data_path_pre += "Google_RE/"
     data_path_post = "_test.jsonl"
     return relations, data_path_pre, data_path_post
 
@@ -235,27 +201,44 @@ def get_Squad_parameters(data_path_pre="data/"):
     return relations, data_path_pre, data_path_post
 
 
-def run_all_LMs(parameters):
+def run_all_LMs(parameters, cfg):
     for ip in LMs:
         print(ip["label"])
-        run_experiments(*parameters, input_param=ip, use_negated_probes=False)
+
+        use_negated_probes = False  # vanilla LAMA
+        # use_negated_probes = True  # Negated-LAMA
+        run_experiments(*parameters,
+                        input_param=ip,
+                        results_file=cfg.results_file,
+                        log_dir=cfg.log_dir,
+                        data_path=cfg.data_path,
+                        use_negated_probes=use_negated_probes)
 
 
-if __name__ == "__main__":
+def run_lama(cfg):
+    use_negated_probes = False  # vanilla LAMA
+    # use_negated_probes = True  # Negated-LAMA
 
     print("1. Google-RE")
-    parameters = get_GoogleRE_parameters()
-    run_all_LMs(parameters)
+    parameters = get_GoogleRE_parameters(cfg.lama_data_dir)
+    #run_experiments(*parameters, results_file=cfg.results_file, log_dir=cfg.log_dir, use_negated_probes=use_negated_probes)
+    run_all_LMs(parameters, cfg)
 
     print("2. T-REx")
-    parameters = get_TREx_parameters()
-    run_all_LMs(parameters)
+    parameters = get_TREx_parameters(cfg.lama_data_dir)
+    #run_experiments(*parameters, cfg.results_file, use_negated_probes=use_negated_probes)
+    run_all_LMs(parameters, cfg)
 
     print("3. ConceptNet")
-    parameters = get_ConceptNet_parameters()
-    run_all_LMs(parameters)
+    print("NA")
+    #parameters = get_ConceptNet_parameters(cfg.benchmark.lama_data_dir)
+    #run_experiments(*parameters, cfg.results_file, use_negated_probes=use_negated_probes)
+    #run_all_LMs(parameters, cfg)
 
     print("4. SQuAD")
-    parameters = get_Squad_parameters()
-    run_all_LMs(parameters)
+    parameters = get_Squad_parameters(cfg.lama_data_dir)
+    #run_experiments(*parameters, cfg.results_file,   use_negated_probes=use_negated_probes)
+    run_all_LMs(parameters, cfg)
+
+    #/export/home/kraft/data/
 
