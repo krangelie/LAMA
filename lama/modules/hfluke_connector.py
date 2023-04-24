@@ -7,7 +7,7 @@
 
 import os
 
-from pytorch_transformers import RobertaTokenizer, RobertaModel, RobertaForMaskedLM
+from transformers import LukeTokenizer, LukeModel, LukeForMaskedLM
 
 import torch
 import numpy as np
@@ -15,34 +15,35 @@ from lama.modules.base_connector import *
 
 import torch.nn.functional as F
 
-class HfRoberta(Base_Connector):
+
+class HfLuke(Base_Connector):
 
     def __init__(self, args):
         super().__init__()
 
-        if args.hfroberta_model_dir is not None:
-            # load bert model from file
-            roberta_model_name = os.path.join(args.data_path, args.hfroberta_model_dir)
-            dict_file = roberta_model_name
-            print("loading huggingface RoBERTa model from {}".format(roberta_model_name))
+        if args.luke_model_dir is not None:
+            # load luke model from file
+            luke_model_name = os.path.join(args.data_path, args.luke_model_dir)
+            dict_file = luke_model_name
+            print("loading huggingface LUKE model from {}".format(luke_model_name))
         else:
-            # load RoBERTa model from huggingface cache
-            roberta_model_name = args.hfroberta_model_name
-            dict_file = roberta_model_name
+            # load Luke model from huggingface cache
+            luke_model_name = args.luke_model_name
+            dict_file = luke_model_name
 
         # When using a cased model, make sure to pass do_lower_case=False directly to BaseTokenizer
         do_lower_case = False
-        if 'uncased' in roberta_model_name:
-            do_lower_case=True
+        if 'uncased' in luke_model_name:
+            do_lower_case = True
 
         # Load pre-trained model tokenizer (vocabulary)
-        self.tokenizer = RobertaTokenizer.from_pretrained(dict_file)
+        self.tokenizer = LukeTokenizer.from_pretrained(dict_file)
 
         # original vocab
 
         # The following process is baded on gpt_connector.
 
-        # RoBERTa also uses BPE. the bytes_to_unicode function takes all control
+        # Luke also uses BPE. the bytes_to_unicode function takes all control
         # and whitespace characters in code points 0-255 and shifts them up
         # by 256 to make them printable. So space (code point 32) becomes Ġ (code point 288).
         # (copied from https://github.com/openai/gpt-2/issues/80#issuecomment-487202159).
@@ -62,10 +63,10 @@ class HfRoberta(Base_Connector):
 
             if word.startswith('Ġ'):  # the token starts with a whitespace
                 return word[1:]
-            
+
             return f'_{word}_'  # the token not start with a white space.
-                                # may be not a head of a word,
-                                # or may be a head of a sentence.
+            # may be not a head of a word,
+            # or may be a head of a sentence.
 
             # need duplitation check?
 
@@ -73,25 +74,25 @@ class HfRoberta(Base_Connector):
         self.vocab = [convert_word(word) for word in gpt_vocab]
         self._init_inverse_vocab()
 
-        # Get UNK symbol as it's written in the origin RoBERTa vocab.
+        # Get UNK symbol as it's written in the origin LUKE vocab.
         unk_index = self.inverse_vocab[ROBERTA_UNK]  # OPENAI_UNK
         self.unk_symbol = self.tokenizer.decoder[unk_index]
 
-        # Get MASK symbol as it's written in the origin RoBERTa vocab.
+        # Get MASK symbol as it's written in the origin LUKE vocab.
         mask_index = self.inverse_vocab[ROBERTA_MASK]
         self.mask_symbol = self.tokenizer.decoder[mask_index]
 
         # Load pre-trained model (weights)
-        self.masked_roberta_model = RobertaForMaskedLM.from_pretrained(roberta_model_name)
-        self.masked_roberta_model.eval()
-        #print(self.masked_roberta_model.config)
+        self.masked_luke_model = LukeForMaskedLM.from_pretrained(luke_model_name)
+        self.masked_luke_model.eval()
+        # print(self.masked_luke_model.config)
 
         # ... to get hidden states
-        self.roberta_model = self.masked_roberta_model.roberta
+        self.luke_model = self.masked_luke_model.luke
 
         # Sanity check.
-        #assert len(self.vocab) == self.masked_roberta_model.config.vocab_size
-        #assert 0 == self.masked_roberta_model.config.n_special
+        # assert len(self.vocab) == self.masked_luke_model.config.vocab_size
+        # assert 0 == self.masked_luke_model.config.n_special
 
         self.eos_id = self.inverse_vocab[ROBERTA_END_SENTENCE]  # OPENAI_EOS
         self.model_vocab = self.vocab
@@ -105,7 +106,7 @@ class HfRoberta(Base_Connector):
         return token_ids
 
     def _cuda(self):
-        self.masked_roberta_model.cuda()
+        self.masked_luke_model.cuda()
 
     def get_id(self, string):
         # tokenize "a " + string, in order to create token_id(s) corresponding to the string.
@@ -139,22 +140,22 @@ class HfRoberta(Base_Connector):
         for tokens_tensor, segments_tensor in zip(tokens_tensors_list, segments_tensors_list):
             dim_tensor = tokens_tensor.shape[1]
             pad_lenght = max_tokens - dim_tensor
-            attention_tensor = torch.full([1,dim_tensor], 1, dtype= torch.long)
-            if pad_lenght>0:
-                pad_1 = torch.full([1,pad_lenght], self.pad_id, dtype= torch.long)
-                pad_2 = torch.full([1,pad_lenght], 0, dtype= torch.long)
-                attention_pad = torch.full([1,pad_lenght], 0, dtype= torch.long)
-                tokens_tensor = torch.cat((tokens_tensor,pad_1), dim=1)
-                segments_tensor = torch.cat((segments_tensor,pad_2), dim=1)
-                attention_tensor = torch.cat((attention_tensor,attention_pad), dim=1)
+            attention_tensor = torch.full([1, dim_tensor], 1, dtype=torch.long)
+            if pad_lenght > 0:
+                pad_1 = torch.full([1, pad_lenght], self.pad_id, dtype=torch.long)
+                pad_2 = torch.full([1, pad_lenght], 0, dtype=torch.long)
+                attention_pad = torch.full([1, pad_lenght], 0, dtype=torch.long)
+                tokens_tensor = torch.cat((tokens_tensor, pad_1), dim=1)
+                segments_tensor = torch.cat((segments_tensor, pad_2), dim=1)
+                attention_tensor = torch.cat((attention_tensor, attention_pad), dim=1)
             if final_tokens_tensor is None:
                 final_tokens_tensor = tokens_tensor
                 final_segments_tensor = segments_tensor
                 final_attention_mask = attention_tensor
             else:
-                final_tokens_tensor = torch.cat((final_tokens_tensor,tokens_tensor), dim=0)
-                final_segments_tensor = torch.cat((final_segments_tensor,segments_tensor), dim=0)
-                final_attention_mask = torch.cat((final_attention_mask,attention_tensor), dim=0)
+                final_tokens_tensor = torch.cat((final_tokens_tensor, tokens_tensor), dim=0)
+                final_segments_tensor = torch.cat((final_segments_tensor, segments_tensor), dim=0)
+                final_attention_mask = torch.cat((final_attention_mask, attention_tensor), dim=0)
         # print(final_tokens_tensor)
         # print(final_segments_tensor)
         # print(final_attention_mask)
@@ -199,6 +200,7 @@ class HfRoberta(Base_Connector):
             token = tokenized_text[i]
             if token == ROBERTA_MASK:  # MASK
                 masked_indices.append(i)
+                masked_indices.append(i)
 
         indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
 
@@ -208,20 +210,20 @@ class HfRoberta(Base_Connector):
 
         return tokens_tensor, segments_tensors, masked_indices, tokenized_text
 
-
     def get_batch_generation(self, sentences_list, logger=None, try_cuda=True):
         if not sentences_list:
             return None
         if try_cuda:
             self.try_cuda()
-        #print(sentences_list)
-        tokens_tensor, segments_tensor, attention_mask_tensor, masked_indices_list, tokenized_text_list = self.__get_input_tensors_batch(sentences_list)
+        # print(sentences_list)
+        tokens_tensor, segments_tensor, attention_mask_tensor, masked_indices_list, tokenized_text_list = self.__get_input_tensors_batch(
+            sentences_list)
 
         if logger is not None:
             logger.debug("\n{}\n".format(tokenized_text_list))
 
         with torch.no_grad():
-            logits = self.masked_roberta_model(
+            logits = self.masked_luke_model(
                 input_ids=tokens_tensor.to(self._model_device),
                 token_type_ids=segments_tensor.to(self._model_device),
                 attention_mask=attention_mask_tensor.to(self._model_device),
@@ -243,10 +245,11 @@ class HfRoberta(Base_Connector):
         if try_cuda:
             self.try_cuda()
 
-        tokens_tensor, segments_tensor, attention_mask_tensor, masked_indices_list, tokenized_text_list = self.__get_input_tensors_batch(sentences_list)
+        tokens_tensor, segments_tensor, attention_mask_tensor, masked_indices_list, tokenized_text_list = self.__get_input_tensors_batch(
+            sentences_list)
 
         with torch.no_grad():
-            all_encoder_layers, _ = self.roberta_model(
+            all_encoder_layers, _ = self.luke_model(
                 tokens_tensor.to(self._model_device),
                 segments_tensor.to(self._model_device))
 

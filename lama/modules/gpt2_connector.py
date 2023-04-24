@@ -4,7 +4,11 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #
+
+import os
+
 from pytorch_pretrained_bert import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import AutoTokenizer
 import numpy as np
 from lama.modules.base_connector import *
 
@@ -16,16 +20,16 @@ class GPT2(Base_Connector):
 
         if args.gpt2_model_dir is not None:
             # load GPT2 model from file
-            gpt_model_name = str(args.gpt2_model_dir) + "/"
-            dict_file = gpt_model_name
+            gpt_model_name = os.path.join(args.data_path, args.gpt2_model_dir)
+            #dict_file = gpt_model_name
             print("loading GPT2 model from {}".format(gpt_model_name))
         else:
             # load GPT2 model from huggingface cache
             gpt_model_name = args.gpt2_model_name
-            dict_file = gpt_model_name
+            #dict_file = gpt_model_name
 
         # Load pre-trained model tokenizer (vocabulary)
-        self.tokenizer = GPT2Tokenizer.from_pretrained(dict_file)
+        self.tokenizer = GPT2Tokenizer.from_pretrained(os.path.join(args.data_path, args.tokenizer_dir))
 
         # GPT uses different way to represent BPE then BERT. Namely, the
         # final suffixes are indicated with </w> suffix, while pieces that must
