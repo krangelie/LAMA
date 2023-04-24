@@ -1,4 +1,4 @@
-´import hydra
+import hydra
 from hydra.core.config_store import ConfigStore
 from dataclasses import dataclass
 
