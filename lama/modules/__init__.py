@@ -4,12 +4,13 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #
-from .bert_connector import Bert
-from .elmo_connector import Elmo
-from .gpt_connector import GPT
-from .transformerxl_connector import TransformerXL
-from .roberta_connector import Roberta
+#from .bert_connector import Bert
+#from .elmo_connector import Elmo
+#from .gpt_connector import GPT
+#from .transformerxl_connector import TransformerXL
+#from .roberta_connector import Roberta
 from .hfroberta_connector import HfRoberta
+from .hfluke_connector import HfLuke
 from .gpt2_connector import GPT2
 
 
@@ -20,12 +21,13 @@ def build_model_by_name(lm, args, verbose=True):
     model's initializator.
     """
     MODEL_NAME_TO_CLASS = dict(
-        elmo=Elmo,
-        bert=Bert,
-        gpt=GPT,
-        transformerxl=TransformerXL,
-        roberta=Roberta,
+        #elmo=Elmo,
+        #bert=Bert,
+        #gpt=GPT,
+        #transformerxl=TransformerXL,
+        #roberta=Roberta,
         hfroberta=HfRoberta,
+        hfluke=HfLuke,
         gpt2=GPT2
     )
     if lm not in MODEL_NAME_TO_CLASS:
