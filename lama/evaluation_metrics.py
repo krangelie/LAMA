@@ -38,7 +38,11 @@ def __print_top_k(value_max_probs, index_max_probs, vocab, mask_topk, index_list
             idx = filtered_idx
 
         log_prob = value_max_probs[i].item()
-        word_form = vocab[idx]
+        try:
+            word_form = vocab[idx]
+        except:
+            print("Couldn't create word form. Index out of vocab bounds.")
+            word_form = "ERROR"
 
         if i < max_printouts:
             msg += "{:<8d}{:<20s}{:<12.3f}\n".format(
