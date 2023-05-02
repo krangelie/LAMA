@@ -41,7 +41,6 @@ def __print_top_k(value_max_probs, index_max_probs, vocab, mask_topk, index_list
         try:
             word_form = vocab[idx]
         except:
-            print("Couldn't create word form. Index out of vocab bounds.")
             word_form = "ERROR"
 
         if i < max_printouts:
