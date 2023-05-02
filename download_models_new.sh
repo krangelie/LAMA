@@ -69,6 +69,16 @@ if [[ ! -f "$DST_DIR/luke/config.json" ]]; then
   cd ../..
 fi
 
+echo "Colake-base"
+mkdir -p "$DST_DIR/colake"
+if [[ ! -f "$DST_DIR/colake/model.bin" ]]; then
+  rm -rf "$DST_DIR/colake"
+  mkdir -p "$DST_DIR/colake"
+  cd "$DST_DIR/colake"
+  wget 'https://drive.google.com/file/d/1MEGcmJUBXOyxKaK6K88fZFyj_IbH9U5b/edit' -O model.bin
+  cd ../..
+fi
+
 cd "$DATA_DIR"
 echo 'Building common vocab'
 if [ ! -f "$DST_DIR/common_vocab_cased.txt" ]; then

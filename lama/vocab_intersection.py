@@ -22,6 +22,7 @@ CASED_MODELS = [
         "lm": "hfroberta",
         "hfroberta_model_name": "roberta-base",
         "hfroberta_model_dir": "pre-trained_language_models/roberta/roberta-base",
+        "tokenizer_dir": "roberta-base",
     },
     {
         # "hfLUKE base"
@@ -29,6 +30,13 @@ CASED_MODELS = [
         "luke_model_name": "luke-base",
         "luke_model_dir": "pre-trained_language_models/luke/luke-base",
         "tokenizer_dir": "studio-ousia/luke-base",
+    },
+    {
+        # "Colake base"
+        "lm": "colake",
+        "colake_model_name": "colake",
+        "luke_model_dir": "pre-trained_language_models/colake/model.bin",
+        "tokenizer_dir": "roberta-base",
     },
     {
         # "OpenAI GPT-2"

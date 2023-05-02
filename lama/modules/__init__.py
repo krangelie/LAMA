@@ -9,6 +9,7 @@
 #from .gpt_connector import GPT
 #from .transformerxl_connector import TransformerXL
 #from .roberta_connector import Roberta
+from .colake_connector import Colake
 from .hfroberta_connector import HfRoberta
 from .hfluke_connector import HfLuke
 from .gpt2_connector import GPT2
@@ -26,6 +27,7 @@ def build_model_by_name(lm, args, verbose=True):
         #gpt=GPT,
         #transformerxl=TransformerXL,
         #roberta=Roberta,
+        colake=Colake,
         hfroberta=HfRoberta,
         hfluke=HfLuke,
         gpt2=GPT2
