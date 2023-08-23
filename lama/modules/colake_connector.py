@@ -7,7 +7,7 @@
 
 import os
 
-from pytorch_transformers import RobertaTokenizer, RobertaModel, RobertaForMaskedLM, RobertaConfig
+from transformers import RobertaTokenizer, RobertaModel, RobertaForMaskedLM, RobertaConfig
 
 import torch
 import numpy as np

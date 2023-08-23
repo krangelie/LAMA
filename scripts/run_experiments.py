@@ -5,8 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 #
 import argparse
-from batch_eval_KB_completion import main as run_evaluation
-from batch_eval_KB_completion import load_file
+from scripts.batch_eval_KB_completion import main as run_evaluation
+from scripts.batch_eval_KB_completion import load_file
 from lama.modules import build_model_by_name
 import pprint
 import statistics
@@ -16,7 +16,7 @@ from os.path import isfile, join
 from shutil import copyfile
 from collections import defaultdict
 
-LMs = [
+_LMs = [
     # {
     #     "lm": "gpt2",
     #     "label": "gpt2",
@@ -51,6 +51,17 @@ LMs = [
     }
     ]
 
+
+LMs = [
+    {
+        "lm": "roberta-base",
+        "label": "roberta-b-kelm",
+        "models_names": ["hfroberta"],
+        "hfroberta_model_name": "roberta-base",
+        "hfroberta_model_dir": "/media/angelie/Samsung_T5/KELM-tuned-models/KELM-RoBERTa/roberta"
+                              "-base",
+        "tokenizer_dir": "roberta-base"
+    }]
 def run_experiments(
     relations,
     data_path_pre,
