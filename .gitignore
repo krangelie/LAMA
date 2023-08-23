@@ -1,5 +1,5 @@
 RelationExtraction/emnlp2017-relation-extraction-master/resources/glove/glove.6B.50d.txt
-
+data
 run_lama.sh
 
 # Byte-compiled / optimized / DLL files
