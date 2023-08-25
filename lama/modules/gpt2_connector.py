@@ -7,8 +7,7 @@
 
 import os
 
-from pytorch_pretrained_bert import GPT2LMHeadModel, GPT2Tokenizer
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, GPT2LMHeadModel, GPT2Tokenizer
 import numpy as np
 from lama.modules.base_connector import *
 

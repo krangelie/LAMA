@@ -7,7 +7,7 @@
 
 import os
 
-from pytorch_transformers import RobertaTokenizer, RobertaModel, RobertaForMaskedLM
+from transformers import RobertaTokenizer, RobertaModel, RobertaForMaskedLM
 
 import torch
 import numpy as np
@@ -30,13 +30,18 @@ class HfRoberta(Base_Connector):
             roberta_model_name = args.hfroberta_model_name
             dict_file = roberta_model_name
 
+        if args.tokenizer_dir is not None:
+            tokenizer_dir = args.tokenizer_dir
+        else:
+            tokenizer_dir = dict_file
+
         # When using a cased model, make sure to pass do_lower_case=False directly to BaseTokenizer
         do_lower_case = False
         if 'uncased' in roberta_model_name:
             do_lower_case=True
 
         # Load pre-trained model tokenizer (vocabulary)
-        self.tokenizer = RobertaTokenizer.from_pretrained(dict_file)
+        self.tokenizer = RobertaTokenizer.from_pretrained(tokenizer_dir)
 
         # original vocab
 

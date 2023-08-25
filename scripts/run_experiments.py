@@ -4,9 +4,14 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #
+import os.path
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+
 import argparse
-from batch_eval_KB_completion import main as run_evaluation
-from batch_eval_KB_completion import load_file
+from scripts.batch_eval_KB_completion import main as run_evaluation
+from scripts.batch_eval_KB_completion import load_file
 from lama.modules import build_model_by_name
 import pprint
 import statistics
@@ -16,7 +21,7 @@ from os.path import isfile, join
 from shutil import copyfile
 from collections import defaultdict
 
-LMs = [
+_LMs = [
     # {
     #     "lm": "gpt2",
     #     "label": "gpt2",
@@ -48,8 +53,28 @@ LMs = [
         "luke_model_name": "studio-ousia/luke-base",
         "luke_model_dir": None,
         "tokenizer_dir": None
+    },
+    {
+        "lm": "roberta-base",
+        "label": "roberta-b-kelm",
+        "models_names": ["hfroberta"],
+        "hfroberta_model_name": "roberta-base",
+        "hfroberta_model_dir": "/media/angelie/Samsung_T5/KELM-tuned-models/KELM-RoBERTa/roberta"
+                              "-base",
+        "tokenizer_dir": "roberta-base"
     }
     ]
+
+
+LMs = [
+    {
+        "lm": "roberta-base",
+        "label": "kepler",
+        "models_names": ["hfroberta"],
+        "hfroberta_model_name": "roberta-base",
+        "hfroberta_model_dir": "/media/angelie/Samsung_T5/KEPLER",
+        "tokenizer_dir": "roberta-base"
+    }]
 
 def run_experiments(
     relations,
