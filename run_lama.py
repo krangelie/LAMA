@@ -7,7 +7,7 @@ from scripts.run_experiments import run_lama
 @dataclass
 class LamaConfig:
     lama_data_dir: str = "/home/angelie/Documents/PhD/LAMA/data/" # LAMA dataset directory
-    results_file: str = ("/home/angelie/Documents/PhD/LAMA/results/lama-roberta-b-kelm-results.csv"
+    results_file: str = ("/home/angelie/Documents/PhD/LAMA/results/lama-kepler-results.csv"
                          "") # where to store the analysis
     # results
     log_dir: str = "/home/angelie/Documents/PhD/LAMA/results/logs/" # where to store the log
