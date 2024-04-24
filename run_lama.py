@@ -6,6 +6,10 @@ from scripts.run_experiments import run_lama
 
 @dataclass
 class LamaConfig:
+    run_google: bool = True
+    run_trex: bool = True
+    run_concept: bool = False
+    run_squad: bool = True
     lama_data_dir: str = "/home/angelie/Documents/PhD/LAMA/data/" # LAMA dataset directory
     results_file: str = ("/home/angelie/Documents/PhD/LAMA/results/lama-kepler-results.csv"
                          "") # where to store the analysis
